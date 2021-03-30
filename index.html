@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>    
+    <script src="main.js" ></script>
+ 
+ 
+
+</head>
+<body>  
+    <section>
+        <div>
+            <input type='file' accept='.ass,text/plain' onchange='openFile(event)'><br>
+            <img id='output'>
+            <button id="Num" hidden>Numeracja</button>
+            <button id="Cut">Obetnij</button>
+            <button id="AfterTranslate">Sklej</button>
+            <button id="Save">Zapisz</button>
+            <button id="logi">Logi</button>
+            </div>
+            <div>
+                <input type="number" id="nrLini" hidden>
+                <input type="text" id="DialogEnd" placeholder="Koniec Dialogu" hidden>
+                <input type="checkbox" id="NRLINESYES" hidden>PokaLinie
+                <input type="number" id="EndInfo" hidden>Koniec Info
+                <input type="checkbox" id="DEBUG" hidden>DEBUGMODE
+            </div>
+    </section>
+   
+    <!-- do zapisania https://stackoverflow.com/questions/52792178/i-want-to-save-textbox-to-txt-file-in-html-using-javascript-but-i-have-an-error/52793117-->
+    <script>
+      var InfoArray=[];
+      var DialogueArray=[];
+      var SubsArray=[];
+      var AfterTransArray=[];
+      var OrgSubs=[];
+      var ToSave=[];
+      ///
+      var DialogueAfterTranslation=[];
+
+
+      //Do Znalezienia Początku Dialogów
+      function findDialogueStart(line)
+      {
+        var pas="Dialogue:";
+        
+        if (line.substring(0,pas.length) == "Dialogue:") {
+          return true;
+          }
+          else
+          {
+            return false;
+          }
+        }
+      //Do wyszukiwania Końca Informacji
+      function EndInfoIndex(line,info)
+      {
+        var pas="Dialogue:";
+        
+        if (line.substring(0,pas.length) == "Dialogue:") {
+          return false
+          }
+          else
+          {
+            return true;
+          }
+
+      }
+      // Wyszukiwanie Pasujacego w Srodku Lini
+      function OBCDial(line)
+      {
+        var res=line.match("0,,");
+        var indexOBCD=res.index+3;
+        return indexOBCD;
+      }
+      //Do wyszukiwania Końca Informacji Index
+        function EndInfoIndexTwo(line,index)
+      {
+        var pas="Dialogue:";
+        
+        if (line.substring(0,pas.length) == "Dialogue:") {
+          return false
+          }
+          else
+          {
+            return true;
+          }
+
+      }
+      //// Funkjca 1
+      function GlueDialogue()
+      {
+        var GluIndex=0;
+        var Times = $('#Times').val();
+          DialogueArray = Times.split(/\n/);
+          var Trans = $('#AfterTrans').val();
+          SubsArray = Trans.split(/\n/);
+          DialogueArray.forEach(element=>
+          {
+            $('#SNID').append(element+SubsArray[GluIndex]+"\n");
+            GluIndex++;
+          });
+         
+        
+      }
+
+      function GlueAll()
+      {
+        var GlAll=0;
+        ReadySubs=$('#SNID').val();
+        var RSA=ReadySubs.split(/\n/);
+        InfoArray.pop();
+        
+        var filtered = InfoArray.filter(function (el) {
+          return el != null;
+          });
+        
+        for (let index = 0; index < RSA.length+filtered.length-1; index++) {
+          console.log(ToSave[index]);
+          if(index<=filtered.length-1)
+          {
+            ToSave[index]=filtered[index]+"\n";
+          }
+          else if(index>RSA.length)
+          {
+           // console.log();
+          //  console.log(RSA[GlAll]);
+            ToSave[index]=RSA[GlAll]+"\n";
+            GlAll++;
+          }
+          
+        }
+      }
+      //Funkcja do Zapisywania Plików
+      // DO EDYCJI 
+      function saveTextAsFile() {
+        var textToWrite = $('#BeforeSave').val();
+        var textFileAsBlob = new Blob([ textToWrite ], { type: '.ass' });
+        var fileNameToSaveAs = "AfterTrans.ass"; //filename.extension
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        if (window.webkitURL != null) {
+    
+        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        } else {
+   
+        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+        downloadLink.onclick = destroyClickedElement;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        }
+
+         downloadLink.click();
+        }
+      //Numerowanie do testu
+        $('#Num').click(function()
+        {
+            entered = $('#s').val();
+            lines = entered.split(/\n/);
+            withoutNumbers="";
+            for(var i in lines) {
+          withoutNumbers+="["+i+"]"+lines[i]+"\n";
+            }
+            $('#d').append(withoutNumbers);
+        });
+        // OBCICNANIE LINIJEK TESKTU
+        $('#Cut').click(function()
+        {
+           
+            var k=$('#nrLini').val();
+            entered = $('#s').val();
+            lines = entered.split(/\n/);
+            OrgSubs=$('#s').val();
+            OrgSubsArray=OrgSubs.split(/\n/);
+            opttext = "";
+            var index=0;
+            var info=false;
+            lines.forEach(element=>
+            {
+              
+              if(EndInfoIndex(lines[index],info))
+              {
+                InfoArray[index]=element;
+                $('#Info').append(lines[index]+"\n");
+              }
+              index++;
+            });
+            index=0;
+            lines.forEach(element => {
+             // console.log(element);
+             
+              if(findDialogueStart(element)==true)
+              { 
+                
+                $('#e').append(lines[index]+"\n"); 
+                $('#Times').append(lines[index].substring(0,OBCDial(lines[index]))+"\n");
+                $('#Napisy').append(lines[index].substring(OBCDial(lines[index]),lines[index].length)+"\n");
+                
+              }
+              index++;
+            });
+           
+        });
+        //Sklejanie Info + Czasy+Napisy
+        $('#AfterTranslate').click(function()
+        { 
+          GlueDialogue();
+          GlueAll()
+            
+            ToSave.forEach(element=>
+            {
+              $('#BeforeSave').append(element);
+            });
+            
+        });
+        //Zapisywanie Pliku
+        $('#Save').click(function()
+        {
+          saveTextAsFile();
+        });
+        $('#logi').click(function(){
+         // console.log(ToSave);
+         // console.log(DialogueArray);
+        //  console.log(SubsArray);
+         // console.log(lines);
+         // console.log(OrgSubsArray);
+        });
+        
+      </script>
+    <script>
+        //Otwieranie Pliku
+      var openFile = function(event) {
+        var input = event.target;
+    
+        var reader = new FileReader();
+        reader.onload = function(){
+         //  console.log(reader.result);
+          var text = reader.result;
+          $('#s').val("");
+          $('#s').val(reader.result.substring(0, 100000));
+        };
+        reader.readAsText(input.files[0]);
+      };
+
+       /*
+          var ToSave;
+          var Info=$('#Info').val();
+          var InfoLines=Info.split(/\n/);
+          InfoLines.forEach(element=>{
+            ToSave.push(element);
+            //$('#BeforeSave').append(element+"\n");
+          })
+          var Dailogues=$('#Times').val();
+          var DailoguesLines=Dailogues.split(/\n/);
+          var Subs=$('#AfterTrans').val();
+          var SubsLines=Subs.split(/\n/);
+          DailoguesLines.forEach(element=>
+          {
+            ToSave.push(element+SubsLines[element.index]);
+            //$('#BeforeSave').append(element+SubsLines[element.index]+"\n");
+          })
+           // console.log(findDialogueStart(element)+"   "+element.index);
+          
+          ToSave.forEach(element=>{
+            $('#BeforeSave').append(element+"\n");
+          });
+*/
+
+   /*
+         
+          var index=0;
+          var Times = $('#Times').val();
+          DialogueArray = Times.split(/\n/);
+          var Trans = $('#Napisy').val();
+          SubsArray = Trans.split(/\n/);
+          
+          var Info=$('#Info').val();
+          InfoArray=Info.split(/\n/);
+          console.log(InfoArray.length);
+          ToSave[0]="";
+          console.log(ToSave);
+          console.log(DialogueArray);
+          console.log(SubsArray);
+          console.log(lines);
+          */
+         /*
+          OrgSubsArray.forEach(element=>
+          {
+             if(element.index!=0)
+             {
+               if(element.index>=InfoArray.length&&element.index!=OrgSubsArray.length)
+              {
+
+                 ToSave[element.index].push(DialogueArray[element.index]+SubsArray[element.index]+"\n");
+
+               }
+               else
+                {
+                  ToSave[element.index]=(lines[element.index]+"\n");
+                }
+              }
+              ToSave[element.index]=lines[element.index]+"\n";
+          });
+          
+          
+           */
+          
+           /*lines.forEach(element=>
+            {
+              
+              if(EndInfoIndexTwo(lines[index],index))
+              {
+                ToSave[index]=lines[index]+"\n";
+              }
+              index++;
+            });
+            */
+    </script>
+    
+    <textarea id="s" placeholder="Raw SUBS" readonly  ></textarea>
+    <textarea id="d" placeholder="SUBS z numerami" readonly ></textarea>
+    <textarea id="e" placeholder="Dialogi" readonly  ></textarea>
+    <textarea id="Info"placeholder="Info" readonly  ></textarea>
+    <textarea id="Times"placeholder="Czasy" readonly ></textarea>
+    <textarea id="Napisy"placeholder="Napisy"></textarea>
+    <textarea id="AfterTrans"placeholder="Przetłumaczone"></textarea>
+    <textarea id="SNID"placeholder="Sklejone napisy i dialogi" readonly ></textarea>
+    <textarea id="BeforeSave"placeholder="Przed Zapisem" readonly></textarea>
+    
+</body>
+</html>

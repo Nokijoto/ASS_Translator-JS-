@@ -1,0 +1,17 @@
+
+body
+{
+    background-color: gray;
+}
+div
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+textarea
+{
+    margin-top: 15px;
+    width: 500px;
+    height: 200px;
+}
